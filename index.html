@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Webcam</title>  
+</head>
+<body>
+    <button onClick="webcam();">OPEN CAMERA</button></br>
+    <video id="webcamVideo" width="640" height="480"></video></br>
+    <button onClick="snapshot();">SNAPSHOT</button></br>
+	<canvas id="canvas" width="640" height="480"></canvas>
+	<p id="greeting"></p>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script>
+		    var video = null;
+			var img;
+			var api_url = "https://api.kairos.com";
+    
+			var app_id = "68e200d4";
+			var app_key = "d8c763f7cadfbb295d4c88d2c4c19774";
+		function webcam(){
+
+            (function () {
+                video = document.getElementById('webcamVideo');
+                navigator.getUserMedia(
+					{
+						video: true
+					},
+					function(stream){
+
+						video.src = window.URL.createObjectURL(stream);
+
+						video.play();
+
+					},
+					function(err){
+
+						console.error(err);
+
+					}
+				);
+                
+            })();
+        };
+		
+		function snapshot(){
+			var canvas = document.getElementById('canvas');
+			var context = canvas.getContext('2d');
+			var video = document.getElementById('webcamVideo');
+			context.drawImage(video, 0, 0, 640, 480);
+			img = canvas.toDataURL("image/jpg");
+			recognize();
+		}
+		
+		function recognize(){
+			var request = new XMLHttpRequest();
+
+			request.open('POST', 'https://api.kairos.com/recognize');
+
+			request.setRequestHeader('Content-Type', 'application/json');
+			request.setRequestHeader('app_id', app_id);
+			request.setRequestHeader('app_key', app_key);
+
+			request.onreadystatechange = function () {
+			  if (this.readyState === 4) {
+				console.log('Status:', this.status);
+				console.log('Headers:', this.getAllResponseHeaders());
+				console.log('Body:', this.responseText);
+			  }
+			};
+
+			var body = {
+			  'image': img,
+			  'gallery_name': 'TestGallery'
+			};
+
+			request.send(JSON.stringify(body));
+			var greet = document.getElementById('greeting');
+			greet.innerHTML = "Welcome, "+this.responseText;
+		}
+
+	</script>
+</body>
+
+</html>
+
